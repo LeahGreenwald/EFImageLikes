@@ -17,18 +17,18 @@ namespace ImageShareLikesEntityFramework.Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IConfiguration _configuration;
+        private readonly string _connectionString;
         private readonly IWebHostEnvironment _environment;
 
         public HomeController(IConfiguration configuration, IWebHostEnvironment environment)
         {
-            _configuration = configuration;
+            _connectionString  = configuration.GetConnectionString("ConStr");
             _environment = environment;
         }
 
         public IActionResult Index()
         {
-            var connectionString = _configuration.GetConnectionString("ConStr");
+            var connectionString = _connectionString;
             var repo = new ImageRepository(connectionString);
             List<Image> images = repo.GetAll();
             HomeViewModel vm = new HomeViewModel
@@ -52,14 +52,14 @@ namespace ImageShareLikesEntityFramework.Web.Controllers
             }
             image.FileName = fileName;
             image.Date = DateTime.Now;
-            var connectionString = _configuration.GetConnectionString("ConStr");
+            var connectionString = _connectionString;
             var repo = new ImageRepository(connectionString);
             repo.Add(image);
             return Redirect("/");
         }
         public IActionResult ViewImage (int id)
         {
-            var connectionString = _configuration.GetConnectionString("ConStr");
+            var connectionString = _connectionString;
             var repo = new ImageRepository(connectionString);
             var Ids = HttpContext.Session.Get<List<int>>("Ids");
             bool liked = false;
@@ -77,20 +77,16 @@ namespace ImageShareLikesEntityFramework.Web.Controllers
         [HttpPost]
         public void Update (int id)
         {
-            var Ids = HttpContext.Session.Get<List<int>>("Ids");
-            if (Ids == null)
-            {
-                Ids = new List<int>();
-            }
+            var Ids = HttpContext.Session.Get<List<int>>("Ids") ?? new List<int>();
             Ids.Add(id);
             HttpContext.Session.Set("Ids", Ids);
-            var connectionString = _configuration.GetConnectionString("ConStr");
+            var connectionString = _connectionString;
             var repo = new ImageRepository(connectionString);
             repo.Update(id);
         }
         public IActionResult GetLikes (int id)
         {
-            var connectionString = _configuration.GetConnectionString("ConStr");
+            var connectionString = _connectionString;
             var repo = new ImageRepository(connectionString);
             int likes = repo.GetLikes(id);
             return Json (likes);
